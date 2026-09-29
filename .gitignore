@@ -1,0 +1,20 @@
+.env
+askhub.db
+# datos privados: solo los .gitkeep de las carpetas
+actas/*
+!actas/.gitkeep
+grabaciones/*
+!grabaciones/.gitkeep
+transcripciones/*
+!transcripciones/.gitkeep
+# docs/: solo la documentacion del repo; lo que se suelte ahi para indexar es privado
+docs/*
+!docs/.gitkeep
+!docs/GUIA.md
+!docs/INTEGRATION.md
+!docs/INTEGRATION.es.md
+# libro de custodia (custodia/ledger.py)
+logs/
+__pycache__/
+*.pyc
+.venv/
