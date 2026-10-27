@@ -16,27 +16,41 @@ import argparse
 import datetime
 import os
 import pathlib
+import re
 import sys
 import time
 
 BASE = pathlib.Path(__file__).resolve().parent
 
 
-def cargar_env() -> None:
-    """Lee el .env de al lado sin depender de python-dotenv."""
-    import os
-
-    ruta = BASE / ".env"
-    if not ruta.exists():
-        return
+def leer_env(ruta: pathlib.Path) -> dict[str, str]:
+    """KEY=VALUE de un .env, sin depender de python-dotenv. Los vacíos no entran."""
+    valores = {}
     for linea in ruta.read_text(encoding="utf-8").splitlines():
         linea = linea.strip()
         if not linea or linea.startswith("#") or "=" not in linea:
             continue
         clave, valor = linea.split("=", 1)
-        valor = valor.strip().strip('"').strip("'")
+        valor = valor.strip()
+        entre_comillas = re.match(r"""(["'])(.*?)\1""", valor)
+        if entre_comillas:
+            valor = entre_comillas.group(2)
+        else:
+            # un comentario al final de la línea ("5  # segundos") no es parte del valor
+            # (con la clave vacía, "KEY=   # nota", el valor empieza ya por #)
+            valor = re.split(r"(?:^|\s+)#", valor, maxsplit=1)[0].strip()
         if valor:
-            os.environ.setdefault(clave.strip(), valor)
+            valores[clave.strip()] = valor
+    return valores
+
+
+def cargar_env() -> None:
+    """Lee el .env de al lado; lo que ya esté en el entorno manda."""
+    ruta = BASE / ".env"
+    if not ruta.exists():
+        return
+    for clave, valor in leer_env(ruta).items():
+        os.environ.setdefault(clave, valor)
 
 
 cargar_env()
