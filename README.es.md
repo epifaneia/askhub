@@ -72,6 +72,7 @@ python askhub.py bot               # responde en #preguntar de Discord mientras 
 - Sin evaluación de la calidad de las respuestas ni de las actas contra ground truth.
 - Trello no tiene porcentaje nativo: el cálculo es propio y depende de cómo se usen las columnas y las checklists.
 - Dos personas y dos pistas es diarización perfecta; con más gente en una sola pista, Whisper no separa voces.
+- Quien pregunta ve todo lo indexado. El bot responde a cualquiera que escriba en el canal de preguntas con el índice entero: canales que esa persona no puede leer, todos los tableros de Trello que abre el token personal, `docs/` y las actas. No filtra por los permisos de quien pregunta. Está pensado para un equipo pequeño (dos o tres personas) que ya comparte el mismo acceso; para algo más amplio habría que filtrar antes los resultados por los roles de Discord de quien pregunta.
 - La guía de instalación está solo en español.
 - Identidad, eventos y firma van como contrato con un valor local por defecto (variable de entorno, fichero JSONL, clave HMAC). Los adaptadores al Entra ID, SIEM o PKI de una empresa no están aquí ni se pueden probar aquí: ver [docs/INTEGRATION.es.md](docs/INTEGRATION.es.md).
 
@@ -83,7 +84,7 @@ Los mismos cuatro epígrafes en todos los repositorios. Las filas **hoy** son lo
 
 | | | |
 |---|---|---|
-| **Confidencialidad** | Índice, actas, grabaciones y transcripciones se quedan en la máquina y fuera de git. Whisper corre en local. Lo que sale a Gemini es la pregunta y los fragmentos recuperados para ella; con Ollama no sale nada. El bot solo lee los canales donde tiene permiso. | **hoy** |
+| **Confidencialidad** | Índice, actas, grabaciones y transcripciones se quedan en la máquina y fuera de git. Whisper corre en local. Lo que sale a Gemini es la pregunta y los fragmentos recuperados para ella; con Ollama no sale nada. El bot solo lee los canales donde tiene permiso, pero responde con todos ellos a cualquiera del canal de preguntas: ver Limitaciones. | **hoy** |
 | **Trazabilidad** | Cada fragmento lleva fuente, título, url y hash; el bot responde citando el mensaje original; cada acta guarda su transcripción completa aparte. `estado` dice qué hay indexado y qué falta. | **hoy** |
 | | **Cable 2 · eventos.** Toda llamada a un modelo (chat, embeddings, transcripción en nube) pasa por `custodia/ledger`: una línea JSON con actor, paso, motor, endpoint, si el dato salió, tamaño y hash. Nunca el texto. `logs/custody.jsonl` o stdout. | **cable** |
 | **Prevención de fugas** | El modelo no tiene credenciales; los tokens de Discord, Trello y Slack los tiene el proceso de sincronización, que solo lee. El bot no abre conexión de gateway. | **hoy** |

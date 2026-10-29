@@ -72,6 +72,7 @@ python askhub.py bot               # answers in Discord's #preguntar while the p
 - No evaluation of answer or minutes quality against ground truth.
 - Trello has no native percentage: the computation is ours and depends on how columns and checklists are used.
 - Two people on two tracks is perfect diarisation; with more people on one track, Whisper does not separate voices.
+- Whoever asks sees everything indexed. The bot answers anyone who writes in the questions channel with the whole index: channels that person cannot read, every Trello board the personal token opens, `docs/` and the minutes. It does not filter by the asker's permissions. It is meant for a small team (two or three people) who already share the same access; for anything wider, results would have to be filtered by the asker's Discord roles first.
 - The setup guide is in Spanish only.
 - Identity, events and sign-off ship as a contract with a local default (environment variable, JSONL file, HMAC key). The adapters to a company's Entra ID, SIEM or PKI are not here and cannot be tested here: see [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
@@ -83,7 +84,7 @@ The same four headings in every repository. **today** rows are what the code doe
 
 | | | |
 |---|---|---|
-| **Confidentiality** | Index, minutes, recordings and transcripts stay on the machine and outside git. Whisper runs locally. What goes to Gemini is the question and the fragments retrieved for it; with Ollama nothing leaves. The bot only reads the channels it has permission for. | **today** |
+| **Confidentiality** | Index, minutes, recordings and transcripts stay on the machine and outside git. Whisper runs locally. What goes to Gemini is the question and the fragments retrieved for it; with Ollama nothing leaves. The bot only reads the channels it has permission for, but answers from all of them to anyone in the questions channel: see Limitations. | **today** |
 | **Traceability** | Every fragment carries source, title, url and hash; the bot answers quoting the original message; every set of minutes keeps its full transcript aside. `estado` reports what is indexed and what is missing. | **today** |
 | | **Wire 2 · events.** Every model call (chat, embeddings, cloud transcription) goes through `custodia/ledger`: one JSON line with actor, step, engine, endpoint, whether data left, size and hash. Never the text. `logs/custody.jsonl` or stdout. | **wire** |
 | **Leak prevention** | The model has no credentials; the Discord, Trello and Slack tokens belong to the sync process, which only reads. The bot opens no gateway connection. | **today** |
