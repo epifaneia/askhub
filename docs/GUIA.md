@@ -12,7 +12,8 @@ python askhub.py estado                          # qué hay indexado y qué falt
 ```
 
 El equipo usa herramientas normales (Discord/Slack + Trello). **Solo tú** montas
-esto: nadie más instala nada ni se entera de que existe.
+esto: nadie más instala nada. Pero avisa al equipo de qué se indexa (canales, tableros,
+actas) y adónde va: a Gemini por defecto, o a ningún sitio con Ollama.
 
 ---
 
