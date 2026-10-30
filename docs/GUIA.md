@@ -7,7 +7,7 @@ Sin servidor, sin Docker, sin cuota mensual. Coste: **0 €**.
 python askhub.py sync                            # trae todo por API y lo indexa
 python askhub.py ask "¿cómo va el rediseño?"     # pregunta
 python askhub.py chat                            # conversación con memoria
-python askhub.py proyectos                       # % de avance por tablero
+python askhub.py proyectos                       # proyectos abiertos y subtareas pendientes
 python askhub.py estado                          # qué hay indexado y qué falta
 ```
 
@@ -33,9 +33,10 @@ No existe una herramienta gratuita que haga bien chat **y** tableros. Comprobado
 está escrito — con la ventaja de que askhub guarda copia local, así que **tu
 índice conserva los mensajes que Slack te oculta a los 90 días**.
 
-Trello no tiene % nativo, así que askhub lo calcula: tarjeta en columna de
-"Hecho" o con vencimiento cumplido = 100%, y si no, el porcentaje de su checklist.
-El del tablero es la media. Así una tarjeta a medias también suma.
+Trello no tiene % nativo, y askhub tampoco lo calcula, a propósito: un número
+mezcla cuántas tareas con cuánto trabajo, y no sabe decir «está en producción y
+se sigue mejorando». Se indexa lo que está escrito: columna, subtareas hechas y
+pendientes, descripción; y el modelo lo cuenta con palabras.
 
 ## Instalación
 
@@ -254,5 +255,6 @@ LLM_BACKEND=ollama
 4. Los 14 fragmentos más cercanos se meten en el contexto del LLM con instrucción
    explícita de no inventar y de citar fuentes.
 
-Cada tablero genera además un **fragmento de resumen** con su % agregado; por eso
+Cada tablero genera además un **fragmento de resumen** por cliente, con todos sus
+proyectos abiertos y sus subtareas pendientes; por eso
 "¿cómo va X?" funciona en lenguaje natural en vez de devolverte una lista de tarjetas.

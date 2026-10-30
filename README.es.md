@@ -23,7 +23,7 @@ Cualquier aplicación con IA tiene cinco pasos. Solo el paso 4 invoca un modelo;
 
 ## Dónde aporta valor la IA
 
-"¿En qué quedamos sobre el informe de agosto?" tiene la respuesta repartida entre un hilo de Discord de hace tres semanas, dos tarjetas de Trello y un acta que nadie volvió a abrir. Ninguna herramienta gratuita hace bien chat y tableros a la vez, y ningún copiloto integrado ve las dos cosas. El modelo hace lo único que solo un modelo puede hacer: leer los fragmentos recuperados y redactar la respuesta, o convertir una hora de reunión transcrita en un acta con decisiones y tareas. El código hace todo lo demás: qué entra al índice y cómo se agrupa, qué porcentaje lleva cada tablero, qué se le enseña al modelo, y que el acta y el resumen lleguen enteros, sin que la máquina decida qué era relevante.
+"¿En qué quedamos sobre el informe de agosto?" tiene la respuesta repartida entre un hilo de Discord de hace tres semanas, dos tarjetas de Trello y un acta que nadie volvió a abrir. Ninguna herramienta gratuita hace bien chat y tableros a la vez, y ningún copiloto integrado ve las dos cosas. El modelo hace lo único que solo un modelo puede hacer: leer los fragmentos recuperados y redactar la respuesta, o convertir una hora de reunión transcrita en un acta con decisiones y tareas. El código hace todo lo demás: qué entra al índice y cómo se agrupa, que los proyectos abiertos de cada cliente lleguen al modelo de una pieza, qué se le enseña al modelo, y que el acta y el resumen lleguen enteros, sin que la máquina decida qué era relevante.
 
 ---
 
@@ -37,7 +37,7 @@ Cualquier aplicación con IA tiene cinco pasos. Solo el paso 4 invoca un modelo;
 | 2 · Contexto | Un solo fichero `askhub.db` (SQLite con vectores en numpy) para chat, tarjetas, actas y documentos. Sincronización incremental: solo se recalcula el embedding de lo que cambió, por hash; si la última conversación sigue viva, el cursor retrocede a su principio para completarla en la siguiente pasada. La transcripción completa se guarda pero no se indexa: una hora de reunión son ocho fragmentos de relleno compitiendo con lo bueno. | |
 | 3 · Guardarraíl de entrada | El modelo recibe los fragmentos recuperados con su origen, y nada más. Los tokens de Discord y Trello los tiene el proceso de sincronización; el bot responde citando el mensaje original. | |
 | 4 · Proceso | Una llamada por pregunta. Gemini en la capa gratuita por defecto, o Ollama en local con el mismo contrato; reintentos ante 429. Sin agentes. | |
-| 5 · Guardarraíl de salida | El porcentaje de cada tablero lo calcula el código: tarjeta en columna de hecho o con vencimiento cumplido, 100; si no, el porcentaje de su checklist; el del tablero es la media. De cada reunión salen dos textos a dos canales: el acta con Resumen, Decisiones, Tareas y Temas abiertos, y un resumen en prosa con todo lo que esas cuatro cajas tirarían, cuyo prompt tiene prohibido filtrar por relevancia. Quien lee decide. La fecha del acta sale de cuándo se grabó, no de cuándo se procesó. | ★ |
+| 5 · Guardarraíl de salida | Sin porcentaje de avance, a propósito: un número mezcla cuántas tareas con cuánto trabajo, y no sabe decir lo más habitual, que algo está en producción y se sigue mejorando. El código mete los proyectos abiertos de cada cliente, con sus subtareas pendientes tal como están escritas, en un único fragmento de resumen, así que «¿qué hay abierto en Cliente A?» nunca vuelve con seis tarjetas de quince; al modelo se le pide describir el avance con palabras y citar lo pendiente. De cada reunión salen dos textos a dos canales: el acta con Resumen, Decisiones, Tareas y Temas abiertos, y un resumen en prosa con todo lo que esas cuatro cajas tirarían, cuyo prompt tiene prohibido filtrar por relevancia. Quien lee decide. La fecha del acta sale de cuándo se grabó, no de cuándo se procesó. | ★ |
 
 ## Medido
 
@@ -59,18 +59,18 @@ Lo que no está medido: la calidad de las respuestas contra un ground truth. Las
 cp .env.example .env               # tokens de Discord y Trello, GEMINI_API_KEY o Ollama, CUSTODIA_ACTOR
 python askhub.py sync              # trae todo por API y lo indexa (incremental)
 python askhub.py ask "¿cómo va el rediseño?"
-python askhub.py proyectos         # porcentaje de avance por tablero
+python askhub.py proyectos         # proyectos abiertos por tablero, con sus subtareas pendientes
 python askhub.py bot               # responde en #preguntar de Discord mientras el proceso corre
 ```
 
-`numpy`, `httpx` y `rich` bastan; `faster-whisper` solo para las actas. La guía completa de conexión de Discord, Trello, OBS y el bot está en [docs/GUIA.md](docs/GUIA.md). Este repositorio no lleva datos: `askhub.db`, actas, grabaciones y transcripciones están fuera de git.
+`pip install -r requirements.txt` (`numpy`, `httpx`, `rich`, y `av` para las grabaciones multipista); `faster-whisper` solo para transcribir las actas. `python pruebas/todas.py` pasa todas las pruebas con la red simulada. La guía completa de conexión de Discord, Trello, OBS y el bot está en [docs/GUIA.md](docs/GUIA.md). Este repositorio no lleva datos: `askhub.db`, actas, grabaciones y transcripciones están fuera de git.
 
 ## Limitaciones
 
 - El bot responde mientras el proceso esté corriendo en la máquina de quien lo monta. Si se apaga el portátil, deja de responder hasta que se vuelva a lanzar. Es el precio de no pagar servidor.
 - Gemini por defecto: la pregunta y los fragmentos recuperados salen de la máquina en cada consulta. Con `LLM_BACKEND=ollama` nada sale, más lento.
 - Sin evaluación de la calidad de las respuestas ni de las actas contra ground truth.
-- Trello no tiene porcentaje nativo: el cálculo es propio y depende de cómo se usen las columnas y las checklists.
+- Sin porcentaje de avance (ver el paso 5): el estado es lo que dicen las tarjetas, y vale lo que el equipo las cuide.
 - Dos personas y dos pistas es diarización perfecta; con más gente en una sola pista, Whisper no separa voces.
 - Quien pregunta ve todo lo indexado. El bot responde a cualquiera que escriba en el canal de preguntas con el índice entero: canales que esa persona no puede leer, todos los tableros de Trello que abre el token personal, `docs/` y las actas. No filtra por los permisos de quien pregunta. Está pensado para un equipo pequeño (dos o tres personas) que ya comparte el mismo acceso; para algo más amplio habría que filtrar antes los resultados por los roles de Discord de quien pregunta.
 - La guía de instalación está solo en español.

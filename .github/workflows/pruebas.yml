@@ -1,0 +1,20 @@
+# Las pruebas de askhub en cada push: sin red, sin claves, sin Discord ni Trello.
+name: pruebas
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements.txt
+      - run: python pruebas/todas.py

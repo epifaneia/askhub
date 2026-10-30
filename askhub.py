@@ -5,7 +5,7 @@
     python askhub.py ask "¿cómo va X?"    # pregunta
     python askhub.py chat                 # modo conversación
     python askhub.py bot                  # responde en #preguntar de Discord
-    python askhub.py proyectos            # % de avance de cada tablero
+    python askhub.py proyectos            # proyectos abiertos y subtareas pendientes por tablero
     python askhub.py estado               # qué hay indexado y qué falta
 
 No necesita servidor, ni Docker, ni que nadie más instale nada. La base es un
@@ -397,7 +397,7 @@ def main() -> int:
                    help="minutos entre syncs automaticos; 0 los desactiva")
     s.set_defaults(func=cmd_bot)
 
-    sub.add_parser("proyectos", help="%% de avance por tablero").set_defaults(func=cmd_proyectos)
+    sub.add_parser("proyectos", help="proyectos abiertos y subtareas pendientes por tablero").set_defaults(func=cmd_proyectos)
     sub.add_parser("estado", help="qué hay indexado y qué falta").set_defaults(func=cmd_estado)
 
     args = p.parse_args()

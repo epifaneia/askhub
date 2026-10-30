@@ -23,7 +23,7 @@ Every AI application has five steps. Only step 4 invokes a model; the other four
 
 ## Where AI adds value
 
-"What did we agree about the August report?" has its answer spread across a Discord thread from three weeks ago, two Trello cards and minutes nobody opened again. No free tool does chat and boards well at the same time, and no integrated copilot sees both. The model does the only thing only a model can do: read the retrieved fragments and write the answer, or turn an hour of transcribed meeting into minutes with decisions and tasks. The code does everything else: what enters the index and how it is grouped, what percentage each board has, what the model is shown, and that the minutes and the summary arrive whole, without the machine deciding what was relevant.
+"What did we agree about the August report?" has its answer spread across a Discord thread from three weeks ago, two Trello cards and minutes nobody opened again. No free tool does chat and boards well at the same time, and no integrated copilot sees both. The model does the only thing only a model can do: read the retrieved fragments and write the answer, or turn an hour of transcribed meeting into minutes with decisions and tasks. The code does everything else: what enters the index and how it is grouped, that each client's open projects reach the model in one piece, what the model is shown, and that the minutes and the summary arrive whole, without the machine deciding what was relevant.
 
 ---
 
@@ -37,7 +37,7 @@ Every AI application has five steps. Only step 4 invokes a model; the other four
 | 2 · Context | One file, `askhub.db` (SQLite with numpy vectors), for chat, cards, minutes and documents. Incremental sync: only the embedding of what changed is recomputed, by hash; if the last conversation is still alive, the cursor moves back to its start so the next pass completes it. The full transcript is saved but not indexed: an hour of meeting is eight filler fragments competing with the good ones. | |
 | 3 · Input guardrail | The model receives the retrieved fragments with their origin, and nothing else. The Discord and Trello tokens belong to the sync process; the bot answers quoting the original message. | |
 | 4 · Process | One call per question. Gemini on the free tier by default, or Ollama locally under the same contract; retries on 429. No agents. | |
-| 5 · Output guardrail | Each board's percentage is computed by code: a card in a done column or past its due date counts 100; otherwise its checklist percentage; the board's is the average. Every meeting yields two texts to two channels: the minutes with Summary, Decisions, Tasks and Open topics, and a prose summary with everything those four boxes would drop, whose prompt is forbidden from filtering by relevance. The reader decides. The minutes are dated by when the recording was made, not when it was processed. | ★ |
+| 5 · Output guardrail | No progress percentage, on purpose: a number mixes how many items with how much work, and cannot say the most common thing, that something is in production and still being improved. Code puts each client's open projects, with their pending subtasks as written, into one summary fragment, so "what is open for Client A?" never comes back with six cards of fifteen; the model is told to describe progress in words and quote the pending subtasks. Every meeting yields two texts to two channels: the minutes with Summary, Decisions, Tasks and Open topics, and a prose summary with everything those four boxes would drop, whose prompt is forbidden from filtering by relevance. The reader decides. The minutes are dated by when the recording was made, not when it was processed. | ★ |
 
 ## Measured
 
@@ -59,18 +59,18 @@ What is not measured: answer quality against a ground truth. The tests cover the
 cp .env.example .env               # Discord and Trello tokens, GEMINI_API_KEY or Ollama, CUSTODIA_ACTOR
 python askhub.py sync              # fetches everything over the APIs and indexes it (incremental)
 python askhub.py ask "how is the redesign going?"
-python askhub.py proyectos         # completion percentage per board
+python askhub.py proyectos         # open projects per board, with their pending subtasks
 python askhub.py bot               # answers in Discord's #preguntar while the process runs
 ```
 
-`numpy`, `httpx` and `rich` are enough; `faster-whisper` only for the minutes. The full guide for connecting Discord, Trello, OBS and the bot is in [docs/GUIA.md](docs/GUIA.md) (Spanish). This repository ships no data: `askhub.db`, minutes, recordings and transcripts are outside git.
+`pip install -r requirements.txt` (`numpy`, `httpx`, `rich`, and `av` for multitrack recordings); `faster-whisper` only to transcribe the minutes. `python pruebas/todas.py` runs every test with the network faked. The full guide for connecting Discord, Trello, OBS and the bot is in [docs/GUIA.md](docs/GUIA.md) (Spanish). This repository ships no data: `askhub.db`, minutes, recordings and transcripts are outside git.
 
 ## Limitations
 
 - The bot answers while the process is running on the machine of whoever set it up. If the laptop is off, it stops answering until it is launched again. That is the price of not paying for a server.
 - Gemini by default: the question and the retrieved fragments leave the machine on every query. With `LLM_BACKEND=ollama` nothing leaves, more slowly.
 - No evaluation of answer or minutes quality against ground truth.
-- Trello has no native percentage: the computation is ours and depends on how columns and checklists are used.
+- No progress percentage (see step 5): status is what the cards say, so it is only as good as the team keeps them.
 - Two people on two tracks is perfect diarisation; with more people on one track, Whisper does not separate voices.
 - Whoever asks sees everything indexed. The bot answers anyone who writes in the questions channel with the whole index: channels that person cannot read, every Trello board the personal token opens, `docs/` and the minutes. It does not filter by the asker's permissions. It is meant for a small team (two or three people) who already share the same access; for anything wider, results would have to be filtered by the asker's Discord roles first.
 - The setup guide is in Spanish only.

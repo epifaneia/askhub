@@ -1,0 +1,8 @@
+# askhub: lo necesario para indexar, preguntar, el bot y las pruebas
+numpy
+httpx
+rich
+av                   # grabaciones multipista (OBS); faster-whisper lo trae tambien
+
+# opcional: transcribir las actas en local (descarga el modelo la primera vez)
+# faster-whisper
